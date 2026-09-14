@@ -1,0 +1,330 @@
+  :root{
+    --sky-top: #ffe6b0;
+    --sky-bottom: #ffc487;
+    --pavement: #ddd4c2;
+    --pavement-dark: #c3b8a2;
+    --wall: #f4e3c8;
+    --wall-trim: #e0956b;
+    --stool-red: #d9503d;
+    --stool-red-dark: #b23d2c;
+    --stool-blue: #2f8ca3;
+    --stool-blue-dark: #256e80;
+    --coffee: #6b4226;
+    --coffee-dark: #4a2c18;
+    --cream-panel: #fffaf0;
+    --cream-panel-2: #fff3df;
+    --text-dark: #3a2c1e;
+    --text-dim: #8a7a63;
+    --gold: #c9962f;
+    --gold-bright: #e0b357;
+    --green-leaf: #3f7d52;
+    --danger: #c0392b;
+    --danger-bright: #e2564a;
+    --line: #e3d3b3;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:100%;}
+  body{
+    background:
+      linear-gradient(var(--sky-top), var(--sky-bottom) 38%, var(--pavement) 38%, var(--pavement-dark) 100%) fixed;
+    color: var(--text-dark);
+    font-family: 'Inter', sans-serif;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    overflow-x:hidden;
+    position:relative;
+  }
+  /* decorative sun */
+  body::before{
+    content:"";
+    position:fixed; top:26px; right:8%;
+    width:70px; height:70px; border-radius:50%;
+    background: radial-gradient(circle, #fff6da 0%, #ffdf9e 60%, rgba(255,223,158,0) 75%);
+    box-shadow: 0 0 40px 10px rgba(255,223,158,0.5);
+    pointer-events:none; z-index:0;
+  }
+  .brand{
+    font-family:'Baloo 2', sans-serif;
+    letter-spacing:0.01em;
+    font-weight:800;
+  }
+  /* ---------- Top bar ---------- */
+  #topbar{
+    width:100%;
+    padding:16px 24px 8px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    position:relative; z-index:2;
+  }
+  #topbar h1{
+    font-size:26px;
+    margin:0;
+    color:var(--coffee-dark);
+    display:flex; align-items:center; gap:8px;
+  }
+  #topbar span.tag{
+    font-size:12.5px;
+    color:var(--coffee);
+    font-family:'Inter';
+    background:rgba(255,255,255,0.55);
+    padding:3px 10px;
+    border-radius:12px;
+    border:1px solid rgba(107,66,38,0.2);
+  }
+
+  /* ---------- Screens ---------- */
+  .screen{ width:100%; max-width:1040px; padding:16px 20px 40px; flex:1; display:none; position:relative; z-index:2; }
+  .screen.active{ display:flex; flex-direction:column; align-items:center; }
+
+  /* ---------- Home / lobby ---------- */
+  .card-box{
+    background:var(--cream-panel);
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:26px 28px;
+    width:100%;
+    max-width:460px;
+    box-shadow:0 14px 30px rgba(74,44,24,0.18);
+  }
+  .card-box h2{
+    font-family:'Baloo 2';
+    font-size:22px;
+    margin:0 0 6px;
+    color:var(--coffee-dark);
+  }
+  .card-box p.sub{ margin:0 0 18px; color:var(--text-dim); font-size:13.5px; line-height:1.55;}
+  label{ display:block; font-size:12.5px; color:var(--text-dim); margin-bottom:6px; font-weight:600; }
+  input[type=text]{
+    width:100%;
+    background:#fff;
+    border:1.5px solid var(--line);
+    color:var(--text-dark);
+    padding:11px 12px;
+    border-radius:10px;
+    font-size:15px;
+    margin-bottom:16px;
+    font-family:'Inter';
+  }
+  input[type=text]:focus{ outline:none; border-color:var(--gold); }
+
+  /* avatar picker */
+  .avatar-picker{ display:flex; gap:12px; margin-bottom:18px; }
+  .avatar-choice{
+    flex:1;
+    border:2px solid var(--line);
+    border-radius:12px;
+    padding:10px 6px 8px;
+    text-align:center;
+    cursor:pointer;
+    background:#fff;
+    transition: border-color .15s ease, transform .1s ease;
+  }
+  .avatar-choice .lbl{ font-size:12px; font-weight:600; color:var(--text-dim); margin-top:2px; }
+  .avatar-choice.selected{ border-color:var(--gold); background:var(--cream-panel-2); transform:translateY(-2px); }
+  .avatar-choice.selected .lbl{ color:var(--coffee-dark); }
+
+  /* ---------- 3D avatar mount points ---------- */
+  .avatar3d-wrap{
+    margin:0 auto;
+    border-radius:8px;
+    background: radial-gradient(ellipse at center 70%, rgba(201,150,47,0.12), transparent 70%);
+    overflow:hidden;
+    line-height:0;
+  }
+  .avatar3d-wrap canvas{ display:block; margin:0 auto; }
+
+  .btn{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    background:var(--gold);
+    color:#3a2405;
+    border:none;
+    padding:12px 20px;
+    border-radius:12px;
+    font-family:'Baloo 2';
+    font-weight:700;
+    font-size:15px;
+    letter-spacing:0.01em;
+    cursor:pointer;
+    width:100%;
+    box-shadow:0 3px 0 var(--stool-red-dark, #9c7422), 0 6px 14px rgba(74,44,24,0.18);
+    transition: background .15s ease, transform .08s ease, box-shadow .08s ease;
+  }
+  .btn{ box-shadow:0 3px 0 #9c7422, 0 6px 14px rgba(74,44,24,0.18); }
+  .btn:hover{ background:var(--gold-bright); }
+  .btn:active{ transform:translateY(2px); box-shadow:0 1px 0 #9c7422; }
+  .btn.secondary{ background:#fff; border:2px solid var(--gold); color:var(--coffee-dark); box-shadow:none; }
+  .btn.secondary:hover{ background:var(--cream-panel-2); }
+  .btn.danger{ background:var(--danger); color:#fff; box-shadow:0 3px 0 #7d2018, 0 6px 14px rgba(74,44,24,0.18); }
+  .btn.danger:hover{ background:var(--danger-bright); }
+  .btn:disabled{ opacity:0.4; cursor:not-allowed; }
+  .divider-row{ display:flex; align-items:center; gap:12px; margin:18px 0; color:var(--text-dim); font-size:12px;}
+  .divider-row::before, .divider-row::after{ content:""; flex:1; height:1px; background:var(--line); }
+
+  .room-code{
+    font-family:'Baloo 2';
+    font-size:30px;
+    letter-spacing:0.1em;
+    text-align:center;
+    color:var(--coffee-dark);
+    background:var(--cream-panel-2);
+    border:2px dashed var(--gold);
+    border-radius:12px;
+    padding:14px 10px;
+    margin-bottom:12px;
+    cursor:pointer;
+    user-select:all;
+  }
+  .hint{ font-size:12px; color:var(--text-dim); text-align:center; margin-bottom:16px; }
+
+  .lobby-players{ list-style:none; margin:0 0 18px; padding:0; display:flex; flex-direction:column; gap:8px; }
+  .lobby-players li{
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:8px 12px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-size:14px;
+  }
+  .lobby-players li .lname{ flex:1; }
+  .lobby-players li .host-tag{ font-size:10.5px; color:#fff; background:var(--stool-red); padding:2px 7px; border-radius:8px; }
+
+  /* ---------- Game screen ---------- */
+  #gameScreen{ max-width:1120px; }
+  .table-wrap{ width:100%; display:flex; flex-direction:column; align-items:center; gap:14px; }
+
+  #opponents{ width:100%; display:flex; flex-wrap:wrap; justify-content:center; gap:12px; }
+  .opp-card{
+    background:var(--cream-panel);
+    border:2px solid var(--line);
+    border-radius:14px;
+    padding:8px 12px 10px;
+    min-width:118px;
+    text-align:center;
+    position:relative;
+  }
+  .opp-card.turn{ border-color:var(--gold); box-shadow:0 0 0 3px rgba(201,150,47,0.25); }
+  .opp-card.dead{ filter:grayscale(0.85); opacity:0.55; }
+  .opp-name{ font-family:'Baloo 2'; font-size:14px; margin:2px 0; }
+  .opp-meta{ font-size:11.5px; color:var(--text-dim); }
+  .revolver{ display:flex; justify-content:center; gap:3px; margin-top:5px; }
+  .chamber{ width:8px; height:8px; border-radius:50%; background:#fff; border:1.5px solid var(--stool-blue); }
+  .chamber.used{ background:var(--danger); border-color:var(--danger-bright); }
+
+  .felt{
+    width:100%;
+    background:
+      repeating-linear-gradient(45deg, #e7dcc3 0 10px, #ded1b2 10px 20px);
+    border:3px solid var(--coffee);
+    border-radius:20px;
+    padding:22px 18px;
+    min-height:210px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:12px;
+    box-shadow: inset 0 0 40px rgba(107,66,38,0.15), 0 10px 24px rgba(74,44,24,0.15);
+    position:relative;
+  }
+  .tray{
+    position:absolute; inset:14px;
+    border:3px solid var(--coffee);
+    border-radius:50% / 24%;
+    opacity:0.18;
+    pointer-events:none;
+  }
+  .target-banner{
+    font-family:'Baloo 2';
+    font-size:14.5px;
+    color:var(--coffee-dark);
+    text-align:center;
+    z-index:1;
+  }
+  .target-banner b{ font-size:19px; color:var(--danger); }
+  .pile-area{ display:flex; gap:8px; align-items:center; min-height:64px; z-index:1; }
+  .mini-card{
+    width:40px; height:56px;
+    background:var(--cream-panel);
+    border:2px solid var(--coffee);
+    border-radius:6px;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Baloo 2'; font-size:17px; color:var(--coffee);
+    box-shadow:0 3px 6px rgba(74,44,24,0.25);
+  }
+  .last-claim{ font-size:13.5px; color:var(--text-dim); text-align:center; z-index:1; }
+  .last-claim b{ color:var(--text-dark); }
+  .table-log{ font-size:12.5px; color:var(--text-dim); text-align:center; min-height:16px; max-width:560px; z-index:1;}
+
+  #actions{ display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin-top:2px; z-index:1;}
+  #actions .btn{ width:auto; padding:11px 22px; }
+
+  #myArea{
+    width:100%;
+    background:var(--cream-panel);
+    border:2px solid var(--line);
+    border-radius:16px;
+    padding:14px 16px;
+  }
+  #myHeader{ display:flex; align-items:center; gap:10px; margin-bottom:8px; flex-wrap:wrap; }
+  #myHeader .name{ font-family:'Baloo 2'; font-size:15px; color:var(--coffee-dark); }
+  #hand{ display:flex; gap:8px; flex-wrap:wrap; justify-content:center; min-height:92px; }
+  .card{
+    width:60px; height:86px;
+    background:var(--cream-panel);
+    border:2px solid var(--line);
+    border-radius:10px;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Baloo 2'; font-size:24px; color:var(--coffee-dark);
+    cursor:pointer;
+    transition:transform .12s ease, border-color .12s ease, box-shadow .12s ease;
+    user-select:none;
+    box-shadow:0 3px 0 rgba(74,44,24,0.1);
+  }
+  .card:hover{ transform:translateY(-4px); }
+  .card.selected{ border-color:var(--gold); transform:translateY(-8px); box-shadow:0 6px 14px rgba(201,150,47,0.35); background:var(--cream-panel-2); }
+  .card.joker{ color:var(--danger); }
+
+  #playControls{ display:flex; justify-content:center; gap:10px; margin-top:12px; flex-wrap:wrap; }
+
+  .log-panel{
+    width:100%;
+    max-height:110px;
+    overflow-y:auto;
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:9px 12px;
+    font-size:12px;
+    color:var(--text-dim);
+    margin-top:12px;
+  }
+  .log-panel div{ margin-bottom:3px; }
+
+  .overlay{
+    position:fixed; inset:0; background:rgba(58,44,30,0.55);
+    display:none; align-items:center; justify-content:center; z-index:50;
+  }
+  .overlay.active{ display:flex; }
+  .overlay-box{
+    background:var(--cream-panel); border:2px solid var(--gold);
+    border-radius:16px; padding:30px 34px; text-align:center; max-width:380px;
+  }
+  .overlay-box h2{ font-family:'Baloo 2'; font-size:24px; margin:0 0 10px; color:var(--coffee-dark); }
+  .overlay-box p{ color:var(--text-dim); font-size:14px; margin-bottom:20px; }
+
+  ::-webkit-scrollbar{ width:8px; }
+  ::-webkit-scrollbar-thumb{ background:var(--line); border-radius:4px; }
+
+  @media (max-width:560px){
+    .room-code{ font-size:24px; }
+    .card{ width:52px; height:76px; font-size:20px; }
+  }
