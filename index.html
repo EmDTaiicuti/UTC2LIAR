@@ -6,6 +6,32 @@
 <title>Cà Phê Bệt — Nói Dối</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script>
+// Lightweight on-screen debug logger: shows JS errors directly in the page
+// (bottom banner) so problems can be diagnosed from a phone/screenshot too,
+// without needing to open the browser's developer console.
+window.debugLog = function(msg){
+  try{
+    var b = document.getElementById('debugBox');
+    if(b){
+      b.style.display = 'block';
+      var line = document.createElement('div');
+      line.textContent = '• ' + msg;
+      b.appendChild(line);
+      b.scrollTop = b.scrollHeight;
+      var closeBtn = document.getElementById('debugBoxClose');
+      if(closeBtn) closeBtn.style.display = 'block';
+    }
+    console.warn('[debug]', msg);
+  } catch(e){ console.error(msg); }
+};
+window.addEventListener('error', function(e){
+  window.debugLog('Lỗi JS: ' + (e.message || e) + (e.filename ? (' @' + e.filename.split('/').pop() + ':' + e.lineno) : ''));
+});
+window.addEventListener('unhandledrejection', function(e){
+  window.debugLog('Lỗi Promise: ' + (e.reason && e.reason.message ? e.reason.message : e.reason));
+});
+</script>
 <!-- PeerJS and three.js (+ classic GLTFLoader/SkeletonUtils) are embedded directly
      below instead of loaded from a CDN via src=, so the game never breaks due to
      a blocked/slow CDN, an offline connection, or a sandboxed preview's script
@@ -4500,6 +4526,15 @@
 </head>
 <body>
 
+<div id="debugBox" style="display:none;position:fixed;left:8px;right:8px;bottom:8px;max-height:35vh;overflow-y:auto;background:rgba(30,20,10,0.92);color:#ffd7a8;font:11px/1.5 monospace;padding:10px 34px 10px 12px;border-radius:10px;z-index:999;white-space:pre-wrap;"></div>
+<button id="debugBoxClose" style="display:none;position:fixed;right:12px;bottom:calc(35vh + 4px);z-index:1000;background:var(--danger);color:#fff;border:none;border-radius:8px;padding:4px 10px;font-size:11px;cursor:pointer;">Ẩn lỗi</button>
+<script>
+document.getElementById('debugBoxClose').onclick = function(){
+  document.getElementById('debugBox').style.display = 'none';
+  this.style.display = 'none';
+};
+</script>
+
 <div id="topbar">
   <h1 class="brand">☕ CÀ PHÊ BỆT — NÓI DỐI</h1>
   <span class="tag">bịp bài · ghế nhựa · nắng chiều</span>
@@ -4738,6 +4773,7 @@ function mountAvatar3D(container, key, avatarType, opts={}){
     avatarInstances.set(key, inst);
     applyAvatarPose(inst, opts);
   } catch(err){
+    if(window.debugLog) window.debugLog('Không dựng được nhân vật 3D (' + key + '): ' + (err && err.message ? err.message : err));
     console.error('Không dựng được nhân vật 3D, dùng ảnh thay thế:', err);
     mountAvatarFallback(container, avatarType);
     return null;
@@ -4948,15 +4984,16 @@ function hostCheckGameOver(){
 }
 
 function hostHandlePlay(playerId, cardUids){
-  if(state.phase !== 'playing') return;
-  if(currentPlayerId() !== playerId) return;
+  if(state.phase !== 'playing') return 'Ván chưa bắt đầu hoặc đã kết thúc.';
+  if(currentPlayerId() !== playerId) return 'Chưa tới lượt của bạn (chủ quán ghi nhận lượt khác).';
   const player = state.players.find(p=>p.id===playerId);
-  if(!player || !player.alive) return;
-  if(!cardUids || cardUids.length < 1 || cardUids.length > 3) return;
+  if(!player) return 'Chủ quán không thấy bạn trong ván chơi (id không khớp).';
+  if(!player.alive) return 'Bạn đã bị loại khỏi ván này.';
+  if(!cardUids || cardUids.length < 1 || cardUids.length > 3) return 'Số lá chọn không hợp lệ (phải 1-3 lá).';
   const cards = [];
   for(const cu of cardUids){
     const c = player.hand.find(x=>x.uid===cu);
-    if(!c) return;
+    if(!c){ return 'Lá bài đã chọn không còn trên tay (dữ liệu không khớp, thử tải lại trang).'; }
     cards.push(c);
   }
   player.hand = player.hand.filter(c=>!cardUids.includes(c.uid));
@@ -4968,12 +5005,13 @@ function hostHandlePlay(playerId, cardUids){
     log(`${player.name} đã hết bài trên tay!`);
   }
   advanceTurn(playerId);
+  return true;
 }
 
 function hostHandleChallenge(challengerId){
-  if(state.phase !== 'playing') return;
-  if(currentPlayerId() !== challengerId) return;
-  if(state.pile.length === 0) return;
+  if(state.phase !== 'playing') return 'Ván chưa bắt đầu hoặc đã kết thúc.';
+  if(currentPlayerId() !== challengerId) return 'Chưa tới lượt của bạn (chủ quán ghi nhận lượt khác).';
+  if(state.pile.length === 0) return 'Chưa có ai úp bài để mà bắt bịp.';
   const top = state.pile[state.pile.length-1];
   const challenger = state.players.find(p=>p.id===challengerId);
   const accused = state.players.find(p=>p.id===top.playerId);
@@ -5007,16 +5045,26 @@ function hostHandleChallenge(challengerId){
     advanceTurn(startFrom);
     hostStartRound(false);
   }
+  return true;
 }
 
 function hostHandleAction(playerId, action){
+  let result = true;
   if(action.type === 'play'){
-    hostHandlePlay(playerId, action.cardUids);
+    result = hostHandlePlay(playerId, action.cardUids);
   } else if(action.type === 'challenge'){
-    hostHandleChallenge(playerId);
+    result = hostHandleChallenge(playerId);
   } else if(action.type === 'restart'){
     state.players.forEach(p=>{ p.revolver = makeRevolver(); });
     hostStartGame();
+  }
+  // if the action was rejected (result is a string reason, not true), tell whoever sent it
+  if(typeof result === 'string'){
+    if(playerId === myId){
+      debugLog('Hành động "' + action.type + '" bị từ chối: ' + result);
+    } else if(connections[playerId] && connections[playerId].open){
+      connections[playerId].send({ type:'debug', message: 'Hành động "' + action.type + '" bị từ chối: ' + result });
+    }
   }
   broadcastState();
 }
@@ -5051,7 +5099,11 @@ function initPeer(onOpen){
   peer.on('open', id=>{ myId = id; onOpen(id); });
   peer.on('error', err=>{
     console.error(err);
+    debugLog('Lỗi PeerJS: ' + err.type);
     document.getElementById('homeError').textContent = 'Lỗi kết nối: ' + err.type + '. Thử lại nhé.';
+  });
+  peer.on('disconnected', ()=>{
+    debugLog('Mất kết nối tới máy chủ tiếp sóng (signaling). Nếu hành động không còn phản hồi, hãy tải lại trang và vào lại phòng.');
   });
 }
 
@@ -5077,8 +5129,13 @@ function hostSetupConnectionHandlers(){
 }
 
 function clientSendAction(action){
-  if(isHost){ hostHandleAction(myId, action); }
-  else if(hostConn && hostConn.open){ hostConn.send({ type:'action', action }); }
+  if(isHost){
+    hostHandleAction(myId, action);
+  } else if(hostConn && hostConn.open){
+    hostConn.send({ type:'action', action });
+  } else {
+    debugLog('Không gửi được hành động "' + action.type + '": ' + (!hostConn ? 'chưa có kết nối tới chủ quán' : 'kết nối tới chủ quán đã đóng') + '. Thử thoát ra vào lại phòng.');
+  }
 }
 
 // =======================================================
@@ -5117,11 +5174,24 @@ document.getElementById('joinBtn').onclick = ()=>{
       document.getElementById('waitingHost').style.display='block';
     });
     hostConn.on('data', data=>{
-      if(data.type === 'welcome'){ myId = data.yourId; }
-      else if(data.type === 'state'){ onStateReceived(data.state); }
+      if(data.type === 'welcome'){
+        myId = data.yourId;
+        debugLog('Đã nhận ID của bạn từ chủ quán: ' + myId);
+      }
+      else if(data.type === 'state'){
+        if(!myId) debugLog('Cảnh báo: nhận trạng thái ván chơi nhưng chưa có ID của bạn — hành động của bạn có thể không hoạt động.');
+        onStateReceived(data.state);
+      }
+      else if(data.type === 'debug'){
+        debugLog(data.message);
+      }
     });
     hostConn.on('error', err=>{
+      debugLog('Lỗi kết nối tới chủ quán: ' + (err && err.type ? err.type : err));
       document.getElementById('homeError').textContent = 'Không vào được phòng. Kiểm tra mã phòng.';
+    });
+    hostConn.on('close', ()=>{
+      debugLog('Mất kết nối tới chủ quán. Các nút hành động sẽ không còn phản hồi — cần vào lại phòng.');
     });
   });
 };
@@ -5229,11 +5299,16 @@ function renderAll(s){
     div.appendChild(revolverDiv);
 
     oppWrap.appendChild(div);
-    renderAvatarSlot(avWrap, 'opp:'+p.id, p.avatar, {
-      width:56, height:68,
-      anim: (currentPlayerId()===p.id && state.phase==='playing') ? 'Walk' : 'Idle',
-      dead: !p.alive
-    });
+    try{
+      renderAvatarSlot(avWrap, 'opp:'+p.id, p.avatar, {
+        width:56, height:68,
+        anim: (currentPlayerId()===p.id && state.phase==='playing') ? 'Walk' : 'Idle',
+        dead: !p.alive
+      });
+    } catch(err){
+      debugLog('Lỗi hiện avatar đối thủ ('+p.name+'): ' + (err && err.message ? err.message : err));
+      mountAvatarFallback(avWrap, p.avatar);
+    }
   });
 
   const myAvatarWrapEl = document.getElementById('myAvatarWrap');
@@ -5246,11 +5321,16 @@ function renderAll(s){
     meWrap.style.display = 'inline-block';
     myAvatarWrapEl.appendChild(meWrap);
     destroyContext('me:');
-    renderAvatarSlot(meWrap, 'me:'+me.id, me.avatar, {
-      width:38, height:46,
-      anim: (currentPlayerId()===me.id && state.phase==='playing') ? 'Walk' : 'Idle',
-      dead: !me.alive
-    });
+    try{
+      renderAvatarSlot(meWrap, 'me:'+me.id, me.avatar, {
+        width:38, height:46,
+        anim: (currentPlayerId()===me.id && state.phase==='playing') ? 'Walk' : 'Idle',
+        dead: !me.alive
+      });
+    } catch(err){
+      debugLog('Lỗi hiện avatar của bạn: ' + (err && err.message ? err.message : err));
+      mountAvatarFallback(meWrap, me.avatar);
+    }
   }
   document.getElementById('myName').textContent = me ? me.name + ' (bạn)' : '';
   if(me){
