@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cà Phê Bệt — Nói Dối</title>
+<title>Cà Phê Bệp-Bịt</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script>
@@ -32,7 +32,7 @@ window.addEventListener('unhandledrejection', function(e){
   window.debugLog('Lỗi Promise: ' + (e.reason && e.reason.message ? e.reason.message : e.reason));
 });
 </script>
-<!-- PeerJS and three.js (+ classic GLTFLoader/SkeletonUtils) are embedded directly
+<!-- PeerJS anB three.js (+ classic GLTFLoader/SkeletonUtils) are embedded directly
      below instead of loaded from a CDN via src=, so the game never breaks due to
      a blocked/slow CDN, an offline connection, or a sandboxed preview's script
      policy. Only the actual PeerJS signaling connection still needs network access
@@ -5101,6 +5101,7 @@ function initPeer(onOpen){
     console.error(err);
     debugLog('Lỗi PeerJS: ' + err.type);
     document.getElementById('homeError').textContent = 'Lỗi kết nối: ' + err.type + '. Thử lại nhé.';
+    resetJoinButtons();
   });
   peer.on('disconnected', ()=>{
     debugLog('Mất kết nối tới máy chủ tiếp sóng (signaling). Nếu hành động không còn phản hồi, hãy tải lại trang và vào lại phòng.');
@@ -5142,7 +5143,22 @@ function clientSendAction(action){
 // UI: HOME
 // =======================================================
 
+let peerInitStarted = false;
+
+function resetJoinButtons(){
+  peerInitStarted = false;
+  const cb = document.getElementById('createBtn');
+  const jb = document.getElementById('joinBtn');
+  cb.disabled = false; cb.textContent = 'Tạo phòng mới';
+  jb.disabled = false; jb.textContent = 'Vào phòng';
+}
+
 document.getElementById('createBtn').onclick = ()=>{
+  if(peerInitStarted) return;
+  peerInitStarted = true;
+  const btn = document.getElementById('createBtn');
+  btn.disabled = true;
+  btn.textContent = 'Đang tạo phòng...';
   const name = document.getElementById('nameInput').value.trim() || 'Chủ quán';
   myName = name;
   document.getElementById('homeError').textContent = '';
@@ -5158,9 +5174,14 @@ document.getElementById('createBtn').onclick = ()=>{
 };
 
 document.getElementById('joinBtn').onclick = ()=>{
+  if(peerInitStarted) return;
   const name = document.getElementById('nameInput').value.trim() || 'Khách';
   const code = document.getElementById('codeInput').value.trim();
   if(!code){ document.getElementById('homeError').textContent = 'Nhập mã phòng đã nhé.'; return; }
+  peerInitStarted = true;
+  const btn = document.getElementById('joinBtn');
+  btn.disabled = true;
+  btn.textContent = 'Đang vào phòng...';
   myName = name;
   document.getElementById('homeError').textContent = '';
   isHost = false;
@@ -5189,6 +5210,7 @@ document.getElementById('joinBtn').onclick = ()=>{
     hostConn.on('error', err=>{
       debugLog('Lỗi kết nối tới chủ quán: ' + (err && err.type ? err.type : err));
       document.getElementById('homeError').textContent = 'Không vào được phòng. Kiểm tra mã phòng.';
+      resetJoinButtons();
     });
     hostConn.on('close', ()=>{
       debugLog('Mất kết nối tới chủ quán. Các nút hành động sẽ không còn phản hồi — cần vào lại phòng.');
